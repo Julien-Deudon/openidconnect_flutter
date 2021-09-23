@@ -290,19 +290,35 @@ class OpenIdConnect {
     if (!kIsWeb)
       return null; //TODO: Change this to not bypass if other platforms need these.
 
-    String? response;
-    if (url == null) {
-      response = await _platform.processStartup();
+    final storage = new FlutterSecureStorage();
+    print("processStartup from lib");
 
-      if (response == null) return null;
+    print("url from lib: $url");
+
+    // URL can be null if callback.html from lib is used
+    // If custom route is use to retrieve the code, pass it to processStartup
+    if (url == null) {
+      url = await _platform.processStartup();
+
+      if (url == null) return null;
     }
 
-    final storage = new FlutterSecureStorage();
+    print("url from lib after check: $url");
+
     final codeVerifier = await storage.read(key: CODE_VERIFIER_STORAGE_KEY);
+    print("codeVerifier from lib: $codeVerifier");
     final codeChallenge = await storage.read(key: CODE_CHALLENGE_STORAGE_KEY);
+    print("codeChallenge from lib: $codeChallenge");
 
     await storage.delete(key: CODE_VERIFIER_STORAGE_KEY);
     await storage.delete(key: CODE_CHALLENGE_STORAGE_KEY);
+
+    print("clientId: $clientId");
+    print("clientSecret: $clientSecret");
+    print("redirectUrl: $redirectUrl");
+    print("scopes: $scopes");
+    print("configuration: $configuration");
+    print("autoRefresh: $autoRefresh");
 
     final result = await _completeCodeExchange(
       request: InteractiveAuthorizationRequest._(
@@ -315,7 +331,7 @@ class OpenIdConnect {
         codeVerifier: codeVerifier!,
         codeChallenge: codeChallenge!,
       ),
-      url: url ?? response!,
+      url: url,
     );
 
     return result;
