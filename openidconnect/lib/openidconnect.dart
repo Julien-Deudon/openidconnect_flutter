@@ -285,13 +285,17 @@ class OpenIdConnect {
     required Iterable<String> scopes,
     required OpenIdConfiguration configuration,
     bool autoRefresh = true,
+    String? url,
   }) async {
     if (!kIsWeb)
       return null; //TODO: Change this to not bypass if other platforms need these.
 
-    final response = await _platform.processStartup();
+    String? response;
+    if (url == null) {
+      response = await _platform.processStartup();
 
-    if (response == null) return null;
+      if (response == null) return null;
+    }
 
     final storage = new FlutterSecureStorage();
     final codeVerifier = await storage.read(key: CODE_VERIFIER_STORAGE_KEY);
@@ -311,7 +315,7 @@ class OpenIdConnect {
         codeVerifier: codeVerifier!,
         codeChallenge: codeChallenge!,
       ),
-      url: response,
+      url: url ?? response!,
     );
 
     return result;
